@@ -32,7 +32,7 @@ for($i=2; ($i*$i) -le $max_value; $i++){
           
     }
 }
-Write-Host $initial_Array
+#Write-Host $initial_Array
 write-host "Prime number marked"
 $endDate=get-date
 $TimeSpan=$endDate-$stIntDate
