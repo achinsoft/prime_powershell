@@ -1,18 +1,15 @@
 $ScriptBlock = {
-    param($max_value,$initial_Array)
-    $max_value-- 
-    for($i=2; ($i*$i) -le $max_value; $i++){
-      #  Write-Host "Checking for " $i
-        if(-not($initial_Array[$i])){
-            $j=$i
-              while(($j*$i) -le $max_value){
-                    $initial_Array[$j*$i] = $true
-                    $j++
-                                   
-               }
-              
-        }
-    }
+    param($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
+          $i=$p
+          write-host "insser"
+       #   while(($i*$p) -le $sMax_val){
+        #            $initial_Array[(($p*$i)-$sMin_val)] = $true
+         #           $j++
+          #                         
+           #    }
+             
+       write-host $sMin_val $sMax_val $initial_Array $segment_number $p
+    
  #   Write-Host $initial_Array
     
    return $initial_Array
@@ -20,46 +17,73 @@ $ScriptBlock = {
 
 #====================================================
 
-write-host "Enter the last number "
-$max_value=Read-Host
+$max_value=Read-Host -Prompt "Enter the last number " 
 $max_value =[int]$max_value
-$initial_Array= new-object bool[] $max_value
-$segment_divider=10
-$segment_size = [int]($max_value/10)
-$segment_array = new-object int[] $segment_divider
-$start_value_segment = 0
-$end_value_segment = 0
-$segment_size
-$segment_index=0
-for($i=0; $i -le 20; $i++){
-    $start_value_segment = $start_value_segment + $segment_size
-    $end_value_segment = $start_value_segment + $segment_size
-    $segment_array[$segment_index]=$start_value_segment
-    $segment_index++
-    $segment_array[$segment_index]=$end_value_segment
-    $segment_index++
+$total_thread = 4
+while($max_value%$total_thread -ne 0){
+    $max_value++
 }
-write-host $segment_array
+Write-Host -ForegroundColor Yellow "Range is accecpted as 0 -"$max_value
+
+$segment_array_size = $total_thread*2
+$segment_size = [int]($max_value/$total_thread)
+
+$initial_Array= new-object bool[] $segment_size
+$segment_array = new-object int[] $segment_array_size
+$start_value_segment = 0
+$end_value_segment = $segment_size
+$segment_index=0
+$segment_array[$segment_index] = $start_value_segment
+$segment_index++
+$segment_array[$segment_index] = $end_value_segment
+for($i=0; $i -le ($total_thread-2); $i++){
+    $start_value_segment+=$segment_size
+    $end_value_segment+=$segment_size
+    $segment_index++
+    $segment_array[$segment_index] = $start_value_segment
+    $segment_index++
+    $segment_array[$segment_index] = $end_value_segment
+   
+}
+Write-Host $segment_array
 Write-Host "Initial array is set"
 write-host "Scanning will start shortly......"
-while(get-job | where { $_.name -like '*SJob*'})
-{
+while(get-job | where { $_.name -like '*SJob*'}){
     get-job | where { $_.name -like '*SJob*'} | Remove-Job -Force
 } 
-$SJob="SJob-" +[string]10
-$null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($max_value,$initial_Array)
-$joblists=get-job | where { $_.name -like '*SJob*'}
-#$joblists
-foreach($jList in $joblists)
-{
-    while(-not($jList.State -eq "Completed")){
+$segment_index=0
+$Max_val--
+#main algo
+for($p=2; ($p*$p) -le $max_value; $p++){
+    if(-not($initial_Array[$p])){
+        for($i=0; $i -le ($total_thread-1); $i++){
+            $SJob="SJob-" +[string]$i
+            $sMin_val=$segment_array[$segment_index]
+            $segment_index++
+            $sMax_val=$segment_array[$segment_index]
+            $segment_index++
+            $segment_number = $i
+            write-host "job start"
+            $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
+        }
+        $joblists=get-job | where { $_.name -like '*SJob*'}
         
-    } 
-    $initial_Array=Receive-Job $jList.name
-    #$jStat | Get-Member
-    #write-host $initial_Array
-    remove-job $jList.name 
+        foreach($jList in $joblists)
+        {
+            while(-not($jList.State -eq "Completed")){
+        
+            } 
+            $initial_Array=Receive-Job $jList.name
+            #$jStat | Get-Member
+            #write-host $initial_Array
+            remove-job $jList.name 
+            $joblists
+        }
+
+    }   
 }
+    
+
 $total_prime=0
 $str=""
 $stringbuilder = New-Object -TypeName System.Text.StringBuilder
