@@ -1,17 +1,15 @@
 $ScriptBlock = {
     param($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
-          $i=$p
-          write-host "insser"
-       #   while(($i*$p) -le $sMax_val){
-        #            $initial_Array[(($p*$i)-$sMin_val)] = $true
-         #           $j++
-          #                         
-           #    }
-             
-       write-host $sMin_val $sMax_val $initial_Array $segment_number $p
-    
- #   Write-Host $initial_Array
-    
+        # Write-Host $sMin_val
+          $i=$sMin_val
+        
+          while(($i*$p) -le $sMax_val){
+        
+            $initial_Array[(($p*$i)-$sMin_val)] = $true
+            $i++             
+       }
+
+   # write-host $initial_Array
    return $initial_Array
 }
 
@@ -51,16 +49,20 @@ write-host "Scanning will start shortly......"
 while(get-job | where { $_.name -like '*SJob*'}){
     get-job | where { $_.name -like '*SJob*'} | Remove-Job -Force
 } 
-$segment_index=0
+
 $Max_val--
 #main algo
 for($p=2; ($p*$p) -le $max_value; $p++){
+$segment_index=0
     if(-not($initial_Array[$p])){
+        write-host "Checking : "$p
         for($i=0; $i -le ($total_thread-1); $i++){
             $SJob="SJob-" +[string]$i
             $sMin_val=$segment_array[$segment_index]
             $segment_index++
             $sMax_val=$segment_array[$segment_index]
+            Write-Host "sMax_val : $sMax_val   sMin_val : $sMin_val"
+
             $segment_index++
             $segment_number = $i
             write-host "job start"
@@ -74,10 +76,8 @@ for($p=2; ($p*$p) -le $max_value; $p++){
         
             } 
             $initial_Array=Receive-Job $jList.name
-            #$jStat | Get-Member
-            #write-host $initial_Array
             remove-job $jList.name 
-            $joblists
+           # $joblists
         }
 
     }   
