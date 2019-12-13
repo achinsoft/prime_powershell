@@ -2,7 +2,7 @@ write-host "Enter the last number "
 $max_value=Read-Host
 $stDate=get-date
 $stIntDate=get-date
-
+$total_prime=0
 $max_value =[int]$max_value
 
 $initial_Array= new-object bool[] $max_value
@@ -23,7 +23,7 @@ $max_value--
 for($i=2; ($i*$i) -le $max_value; $i++){
     Write-Host "Checking for " $i
     if(-not($initial_Array[$i])){
-        $j=$i
+          $j=$i
           while(($j*$i) -le $max_value){
                 $initial_Array[$j*$i] = $true
                  $j++
@@ -44,7 +44,7 @@ $s=$TimeSpan.Seconds
 $str="It took "+ [string]$d +"d:"+[string]$h +"h:"+[string]$m +"m:"+[string]$s+"s to complete."
 
 Write-Host $str
-$total_prime=0
+
 $str=""
 $stringbuilder = New-Object -TypeName System.Text.StringBuilder
 for($i=2;$i -le $max_value; $i++){
