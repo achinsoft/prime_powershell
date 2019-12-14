@@ -5,7 +5,7 @@ $ScriptBlock = {
         
           while(($i*$p) -le $sMax_val){
         
-            $initial_Array[(($p*$i)-$sMin_val)] = $true
+        #    $initial_Array[(($p*$i)-$sMin_val)] = $true
             $i++             
        }
 
@@ -46,14 +46,15 @@ for($i=0; $i -le ($total_thread-2); $i++){
 Write-Host $segment_array
 Write-Host "Initial array is set"
 write-host "Scanning will start shortly......"
-while(get-job | where { $_.name -like '*SJob*'}){
-    get-job | where { $_.name -like '*SJob*'} | Remove-Job -Force
+while(get-job | where-object { $_.name -like '*SJob*'}){
+    get-job | where-object { $_.name -like '*SJob*'} | Remove-Job -Force
 } 
 
 $Max_val--
 #main algo
 for($p=2; ($p*$p) -le $max_value; $p++){
-$segment_index=0
+    $thread_flag = 0
+    $segment_index=0
     if(-not($initial_Array[$p])){
         write-host "Checking : "$p
         for($i=0; $i -le ($total_thread-1); $i++){
@@ -66,19 +67,31 @@ $segment_index=0
             $segment_index++
             $segment_number = $i
             write-host "job start"
+            $thread_flag++
             $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
         }
-        $joblists=get-job | where { $_.name -like '*SJob*'}
+        Write-Host "thread_flag : $thread_flag"
+        $joblists=get-job | where-object { $_.name -like '*SJob*'}
+       
+            foreach($jList in $joblists)
+            {
+                if($thread_flag -ge 0){
+
+                    while(-not($jList.State -eq "Completed")){
+            
+                    } 
+                    $initial_Array=Receive-Job $jList.name
+                    remove-job $jList.name
+                    $thread_flag-- 
+                    $joblists
+                    write-host "Removed the job"
+                }else{
+                    break
+                }
+                
+            }
         
-        foreach($jList in $joblists)
-        {
-            while(-not($jList.State -eq "Completed")){
         
-            } 
-            $initial_Array=Receive-Job $jList.name
-            remove-job $jList.name 
-           # $joblists
-        }
 
     }   
 }
