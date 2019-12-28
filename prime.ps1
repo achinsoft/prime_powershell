@@ -20,7 +20,7 @@ $ScriptBlock = {
 
 #====================================================
 $str=""
-Set-Content prime.txt $str
+Set-Content "prime.txt" $str
 $max_value=Read-Host -Prompt "Enter the last number " 
 $max_value =[int]$max_value
 $total_thread = 2
@@ -57,7 +57,7 @@ while($number -le $max_value){
                 $prime_count++
                 write-host "prime number $prime_val"
                 $str=[String]$prime_val
-                Add-Content prime.txt $str
+                Add-Content "prime.txt" $str
             }
             remove-job $jList.name
             $running_thread_count--
@@ -69,4 +69,4 @@ while($number -le $max_value){
 }
 write-host "Total Primes in the range $prime_count"
 $str="Total primes count $prime_count"
-Add-content prime.txt $str
+Add-content "prime.txt" $str
