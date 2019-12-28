@@ -1,0 +1,37 @@
+
+#main algo
+for($p=2; $p -le $max_value; $p++){
+    $thread_flag = 0
+    write-host "Checking : "$p
+    for($i=0; $i -le ($total_thread-1); $i++){
+        $SJob="SJob-" +[string]$i
+            write-host "job start"
+            $thread_flag++
+            $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($p)
+        }
+        Write-Host "thread_flag : $thread_flag"
+        $joblists=get-job | where-object { $_.name -like '*SJob*'}
+       
+            foreach($jList in $joblists)
+            {
+                if($thread_flag -ge 0){
+
+                    while(-not($jList.State -eq "Completed")){
+            
+                    } 
+                    $initial_Array=Receive-Job $jList.name
+                    remove-job $jList.name
+                    $thread_flag-- 
+                    $joblists
+                    write-host "Removed the job"
+                }else{
+                    break
+                }
+                
+            }
+        
+        
+
+    }   
+}
+    

@@ -1,115 +1,72 @@
 $ScriptBlock = {
-    param($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
-        # Write-Host $sMin_val
-          $i=$sMin_val
-        
-          while(($i*$p) -le $sMax_val){
-        
-        #    $initial_Array[(($p*$i)-$sMin_val)] = $true
-            $i++             
+    param($number_to_check)
+    $flag = $true
+    $number_to_divide = 2
+    while($number_to_divide -le ($number_to_check/2)){
+        $division_result = $number_to_check % $number_to_divide
+        if ($division_result -eq 0){
+            $flag = $false
+            break
+        }
+           $number_to_divide++   
        }
-
-   # write-host $initial_Array
-   return $initial_Array
+    if($flag){
+        $data = $number_to_check
+    }else{
+        $data = 0
+    }
+    return $data
 }
 
 #====================================================
-
+$str=""
+Set-Content prime.txt $str
 $max_value=Read-Host -Prompt "Enter the last number " 
 $max_value =[int]$max_value
-$total_thread = 4
+$total_thread = 2
 while($max_value%$total_thread -ne 0){
     $max_value++
 }
 Write-Host -ForegroundColor Yellow "Range is accecpted as 0 -"$max_value
 
-$segment_array_size = $total_thread*2
-$segment_size = [int]($max_value/$total_thread)
-
-$initial_Array= new-object bool[] $segment_size
-$segment_array = new-object int[] $segment_array_size
-$start_value_segment = 0
-$end_value_segment = $segment_size
-$segment_index=0
-$segment_array[$segment_index] = $start_value_segment
-$segment_index++
-$segment_array[$segment_index] = $end_value_segment
-for($i=0; $i -le ($total_thread-2); $i++){
-    $start_value_segment+=$segment_size
-    $end_value_segment+=$segment_size
-    $segment_index++
-    $segment_array[$segment_index] = $start_value_segment
-    $segment_index++
-    $segment_array[$segment_index] = $end_value_segment
-   
-}
-Write-Host $segment_array
-Write-Host "Initial array is set"
 write-host "Scanning will start shortly......"
 while(get-job | where-object { $_.name -like '*SJob*'}){
     get-job | where-object { $_.name -like '*SJob*'} | Remove-Job -Force
 } 
-
-$Max_val--
-#main algo
-for($p=2; ($p*$p) -le $max_value; $p++){
-    $thread_flag = 0
-    $segment_index=0
-    if(-not($initial_Array[$p])){
-        write-host "Checking : "$p
-        for($i=0; $i -le ($total_thread-1); $i++){
-            $SJob="SJob-" +[string]$i
-            $sMin_val=$segment_array[$segment_index]
-            $segment_index++
-            $sMax_val=$segment_array[$segment_index]
-            Write-Host "sMax_val : $sMax_val   sMin_val : $sMin_val"
-
-            $segment_index++
-            $segment_number = $i
-            write-host "job start"
-            $thread_flag++
-            $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($sMin_val,$sMax_val,$initial_Array,$segment_number,$p)
-        }
-        Write-Host "thread_flag : $thread_flag"
-        $joblists=get-job | where-object { $_.name -like '*SJob*'}
-       
-            foreach($jList in $joblists)
-            {
-                if($thread_flag -ge 0){
-
-                    while(-not($jList.State -eq "Completed")){
-            
-                    } 
-                    $initial_Array=Receive-Job $jList.name
-                    remove-job $jList.name
-                    $thread_flag-- 
-                    $joblists
-                    write-host "Removed the job"
-                }else{
-                    break
-                }
-                
-            }
-        
-        
-
-    }   
-}
-    
-
-$total_prime=0
-$str=""
-$stringbuilder = New-Object -TypeName System.Text.StringBuilder
-$max_value--
-for($i=2;$i -le $max_value; $i++){
-    if(-not($initial_Array[$i])){
-        $null=$stringbuilder.Append([String]$i)
-        $null=$stringbuilder.Append(" ")
-        $total_prime++
+$prime_count = 0
+$number = 2
+$running_thread_count = 0
+while($number -le $max_value){
+    while($running_thread_count -le $total_thread){
+        $SJob="SJob-" +[string]$running_thread_count
+        write-host "job start for $number with thread count $running_thread_count"
+        $thread_flag++
+        $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($number)
+        $number++
+        $running_thread_count++
     }
+    $joblists=get-job | where-object { $_.name -like '*SJob*'}
+    #$joblists
+    foreach($jList in $joblists)
+    {
+        if($running_thread_count -ge 0){
+            while(-not($jList.State -eq "Completed")){
+            } 
+            $prime_val=Receive-Job $jList.name
+            if($prime_val -ge 1){
+                $prime_count++
+                write-host "prime number $prime_val"
+                $str=[String]$prime_val
+                Add-Content prime.txt $str
+            }
+            remove-job $jList.name
+            $running_thread_count--
+            }else{
+             break
+        }
+    }
+        
 }
-Set-Content "prime.txt" $stringbuilder.ToString()
-$str= "Total Prime " + $total_prime
-Add-Content "prime.txt" $str
-write-host "Total Prime "  $total_prime
-      
+write-host "Total Primes in the range $prime_count"
+$str="Total primes count $prime_count"
+Add-content prime.txt $str
