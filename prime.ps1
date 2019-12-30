@@ -2,7 +2,7 @@ $ScriptBlock = {
     param($number_to_check)
     $flag = $true
     $number_to_divide = 2
-    while($number_to_divide -le ($number_to_check/2)){
+    while($number_to_divide -le ([math]::Sqrt($number_to_check))){
         $division_result = $number_to_check % $number_to_divide
         if ($division_result -eq 0){
             $flag = $false
