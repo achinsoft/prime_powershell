@@ -57,14 +57,7 @@ for($i = 0; $i -lt $total_thread; $i++){
     }
     write-host "Start : $segment_start_value and End : $segment_end_value"
     $null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($segment_start_value, $segment_end_value)
-
 }
-#$SJob = "SJob-01"
-#$null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($segment_start_value, $segment_end_value)
-#$segment_start_value =  $segment_end_value + 1
-#$segment_end_value = $max_value
-#$SJob = "SJob-02"
-#$null = Start-Job -name $SJob $ScriptBlock -ArgumentList ($segment_start_value, $segment_end_value)
 $joblists=get-job | where-object { $_.name -like '*SJob*'}
 #$joblists
 $prime_count = 1
