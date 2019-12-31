@@ -72,6 +72,7 @@ $prime_val = 0
 foreach($jList in $joblists)
 {
     while(-not($jList.State -eq "Completed")){
+        sleep 10
     } 
     $prime_val = Receive-Job $jList.name
     write-host "Prime count in segemnt $($jList.Name) = $prime_val"
